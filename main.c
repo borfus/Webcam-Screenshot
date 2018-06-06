@@ -48,11 +48,11 @@ int main()
         {
             if (!filter)
             {
-                cvSaveImage("saved images/image.jpg", image, 0);
+                cvSaveImage("image.jpg", image, 0);
             }
             else
             {
-                cvSaveImage("saved images/image.jpg", imgGray, 0);
+                cvSaveImage("image.jpg", imgGray, 0);
             }
             puts("Image saved.");
         }
