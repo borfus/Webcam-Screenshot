@@ -1,13 +1,39 @@
 #include <cv.h>
 #include <highgui.h>
 #include <stdio.h>
+#include <unistd.h>
+#include <pthread.h>
+
+IplImage* image;
+IplImage* imgGray;
+int filter = 0;
+int running = 0;
+
+void *timed_screenshot(void *vargp)
+{
+    int *seconds = (int *)vargp;
+
+    for (int i = 0; i < *seconds; i++)
+    {
+        printf("%i\n", *seconds - i);
+        sleep(1);
+    }
+    if (!filter)
+    {
+        cvSaveImage("saved images/image.jpg", image, 0);
+    }
+    else
+    {
+        cvSaveImage("saved images/image.jpg", imgGray, 0);
+    }
+    puts("Image saved.");
+    running = 0;
+}
 
 int main()
 {
     int input;
     CvCapture* webcam = cvCreateCameraCapture(0);
-	
-	// NOTE: Checks for webcam, returns error if none found.
     if (!webcam)
     {
         puts("The program couldn't detect a webcam, Please troubleshoot your webcam and run again.");
@@ -18,16 +44,11 @@ int main()
         puts("Webcam detected. Press spacebar to save the current frame or F to change the filter.");
     }
     puts("Press ESC at any time to exit the program.");
-    cvNamedWindow("Output", 0); // Loads main webcam output window
-
-    IplImage* image;
-    IplImage* imgGray;
-    int filter = 0;
+    cvNamedWindow("Output", 0);
+    
     while (1)
     {
-		// Checks for each frame from the webcam input and displays either the RGB or grayscale
-		// version based on user's decision
-        image = cvQueryFrame(webcam); 
+        image = cvQueryFrame(webcam);
         if (image)
         {
             imgGray = cvCreateImage(cvGetSize(image), IPL_DEPTH_8U, 1);
@@ -43,25 +64,24 @@ int main()
             }
         }
 
-		// Checks for ascii key input
         input = cvWaitKey(10);
         if (input == 27) // If user hits escape, exit program.
         {
             break;
         }
-        else if (input == 32) // hits space to save frame
+        else if (input == 32 && !running) // hits space
         {
             if (!filter)
             {
-                cvSaveImage("image.jpg", image, 0);
+                cvSaveImage("saved images/image.jpg", image, 0);
             }
             else
             {
-                cvSaveImage("image.jpg", imgGray, 0);
+                cvSaveImage("saved images/image.jpg", imgGray, 0);
             }
             puts("Image saved.");
         }
-        else if (input == 102) // hits 'f' to change filter
+        else if (input == 102 && !running) // hits 'f'
         {
             if (!filter)
             {
@@ -73,6 +93,14 @@ int main()
                 filter = 0;
                 puts("RGB");
             }
+        }
+        else if (input >= 49 && input <= 57 && !running)
+        {
+            running = 1;
+            int seconds = input - 48;
+            pthread_t thread_id;
+            pthread_create(&thread_id, NULL, timed_screenshot, &seconds);
+            //pthread_join(thread_id, NULL);
         }
     }
     cvReleaseCapture(&webcam);
