@@ -41,7 +41,7 @@ int main()
     }
     else 
     {
-        puts("Webcam detected. Press spacebar to save the current frame or F to change the filter.");
+        puts("Webcam detected.\nPress spacebar to save the current frame or F to change the filter.\nPress 1 - 9 on the number row to activate a timed screenshot.");
     }
     puts("Press ESC at any time to exit the program.");
     cvNamedWindow("Output", 0);
